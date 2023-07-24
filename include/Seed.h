@@ -4,8 +4,9 @@
 #include <TH2F.h>
 
 #include "AnalysisObject.h"
-#include "vector"
-#include"utility"
+
+#include <vector>
+#include <utility>
 
 class Seed : public AnalysisObject{
 
@@ -20,14 +21,13 @@ class Seed : public AnalysisObject{
 
     // Added to spot noisy pixels.
     inline 
-    const std::vector<std::pair<int, int>>& GetNoisyPixels() {return fNoisyPixels;}
-    
-    void CalculateNoisyPixels();
+    const std::vector<std::pair<int, int>>& GetNoisyPixels() {return m_NoisyPixels;}
 
     private:
 
     void Book() override;
 
+    void CalculateNoisyPixels();
 
     // histograms for the position of seeds within the matrix
     TH1F* hSeed_row;
@@ -52,8 +52,8 @@ class Seed : public AnalysisObject{
     TCanvas* cCol_sector;
 
     // Yet added by Davide for noisy pixels.
-    std::vector<std::pair<int, int>> fNoisyPixels;
-    int fNoiseThreshold;
+    std::vector<std::pair<int, int>> m_NoisyPixels;
+    unsigned int m_NoiseThreshold;
 
 };
 

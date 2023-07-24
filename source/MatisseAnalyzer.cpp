@@ -130,50 +130,48 @@ void MatisseAnalyzer::analyze(){
     std::vector<std::pair<int, int>> NoisyPixels;
 
     // First, loop over the analysis (I want to perform seed study bae).
-    for(auto& obj : m_vAnalysisObj)
-    {
+    for(auto& obj : m_vAnalysisObj){
+
         // loop over the entries, one entry per frame
         while(m_TreeHandler->GetReader()->Next()){
 
-        // get the total number of clusters for this frame
-        unsigned int Nclusters = dataFloat->Get("clusterx")->size();
+            // get the total number of clusters for this frame
+            unsigned int Nclusters = dataFloat->Get("clusterx")->size();
 
-        // loop over all the clusters
-        for(unsigned int iClz=0; iClz < Nclusters; ++iClz)
-        {
+            // loop over all the clusters
+            for(unsigned int iClz=0; iClz < Nclusters; ++iClz){
                 
-            // reset
-            Clz::Mult = 0;
-            Clz::Height = 0;
-            Clz::MatrixHeight = 0;
-            // get sector number
-            unsigned int iSec = (unsigned int)( dataInt->Get("col_seed")->at(iClz) / 6 );
+                // reset
+                Clz::Mult = 0;
+                Clz::Height = 0;
+                Clz::MatrixHeight = 0;
+                // get sector number
+                unsigned int iSec = (unsigned int)( dataInt->Get("col_seed")->at(iClz) / 6 );
 
-            // cut seeds on first row
-            if( dataInt->Get("row_seed")->at(iClz) == 1 ) continue ;
+                // cut seeds on first row
+                if( dataInt->Get("row_seed")->at(iClz) == 1 ) continue ;
 
-            unsigned int noiseIndex = Clz::MatrixSize*iClz + (Clz::MatrixSize-1)/2;
-            float max_val = dataFloat->Get("clusterh")->at(iClz);
-            float noise_val = dataFloat->Get("noise_nxn")->at(noiseIndex);
+                unsigned int noiseIndex = Clz::MatrixSize*iClz + (Clz::MatrixSize-1)/2;
+                float max_val = dataFloat->Get("clusterh")->at(iClz);
+                float noise_val = dataFloat->Get("noise_nxn")->at(noiseIndex);
+
+                if( max_val/noise_val > seed_thr ){
+                    // select seeds only in the 2 central columns of each sector
+                    // columns 3-4 , 9-10 , 15-16, 21-22
+                    unsigned int mod = dataInt->Get("col_seed")->at(iClz)%6;
+                    if( (mod>1) && (mod<4) ){
+
+                        if( std::find(NoisyPixels.begin(), NoisyPixels.end(),
+                            std::make_pair(dataInt->Get("col_seed")->at(iClz),
+                            dataInt->Get("row_seed")->at(iClz))) != NoisyPixels.end() )
+                                continue;
+
+                            // analyze iClz cluster for iSec sector 
+                            obj->Analyze(iClz, iSec);
 
 
-            if( max_val/noise_val > seed_thr ){
-                // select seeds only in the 2 central columns of each sector
-                // columns 3-4 , 9-10 , 15-16, 21-22
-                unsigned int mod = dataInt->Get("col_seed")->at(iClz)%6;
-                if( (mod>1) && (mod<4) ){
-
-                        if(std::find(NoisyPixels.begin(), NoisyPixels.end(),
-                 std::make_pair(dataInt->Get("col_seed")->at(iClz),
-                 dataInt->Get("row_seed")->at(iClz))) != NoisyPixels.end())
-                     continue;
-
-                        // analyze iClz cluster for iSec sector 
-                        obj->Analyze(iClz, iSec);
-
-
-                        if(dynamic_cast<Seed*>(obj) != nullptr)
-                            NoisyPixels = (dynamic_cast<Seed*>(obj))->GetNoisyPixels() ;
+                            if(dynamic_cast<Seed*>(obj) != nullptr)
+                                NoisyPixels = (dynamic_cast<Seed*>(obj))->GetNoisyPixels() ;
                     } 
 
                     // if value/noise > seed_thr we have a cluster
@@ -183,10 +181,11 @@ void MatisseAnalyzer::analyze(){
              
             }
         }   
-
-    m_TreeHandler->GetReader()->Restart();
+        // restart tree reading after each analysis task
+        m_TreeHandler->GetReader()->Restart();
     }
-return;
+    
+    return;
 }
 
 

@@ -20,36 +20,16 @@ class Cluster : public AnalysisObject{
 
     const unsigned int m_MatrixDim = 5;
     unsigned int m_Pixel_thr;   // to identify a cluster
-
-    struct calParam
-    {
-        double a;
-        double b;
-        unsigned int sector;
-
-        calParam(double m, double q, unsigned int sec){
-            a = q;
-            b = m;
-            sector = sec;
-        }
-    };
-
-    std::unordered_map<unsigned int, calParam> calParameters;
     
-
     void Book() override;
-
-    void CalibrateHisto(TH1F* hist, TH1F* hist2, unsigned int val, unsigned int sec);
 
     // single pixel cluster distribution and multiplicity considering all sectors
     TH1F* hSingle_pxl_cluster;
     TH1F* hMultiplicity;
-    TH1F* hsum ;
 
     // corresponding canvases
     TCanvas* cSingle_pxl_cluster;
     TCanvas* cMultiplicity;
-    TCanvas* csum;
 
     // histo for sectors
     TH1F* hMatrix_sector[m_Nsectors];

@@ -114,21 +114,6 @@ void Noise::Begin(const CommandLine& cl){
         Noise::PrintRAWData();
     #endif
 
-
-    //----------- paramenters to calibrate noise ---------------
-    //Noise::calParamNoise param0(0.0135729,-1.32072e-12,0);
-    //Noise::calParamNoise param1(0.0131647,-1.15197e-12,1);
-    //Noise::calParamNoise param2(0.0135495,-2.55329e-12,2);
-    //Noise::calParamNoise param3(0.0116646,1.89448e-12,3);
-//
-    //calParametersNoise.insert( std::make_pair(0, param0) );
-    //calParametersNoise.insert( std::make_pair(1, param1) );
-    //calParametersNoise.insert( std::make_pair(2, param2) );
-    //calParametersNoise.insert( std::make_pair(3, param3) );
-
-
-
-
     return;
 }
 
@@ -193,14 +178,3 @@ void Noise::End(){
     
     return;
 }
-
-//----------- function to calibrate noise -------------------
-//void Noise::CalibrateHistoNoise(TH1F* hist, unsigned int val, unsigned int sec){
-//    //hist->SetAxisRange(0, 50);
-//    
-//    hist->Fill( val * calParametersNoise.at(sec).b + calParametersNoise.at(sec).a );
-//    hist->GetXaxis()->SetTitle("Energy [keV]");
-//
-//    
-//
-//}

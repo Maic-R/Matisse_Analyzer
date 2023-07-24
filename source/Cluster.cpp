@@ -27,7 +27,7 @@ Cluster::~Cluster(){
 void Cluster::Book(){
 
     // single pixel clusters
-    Save( hSingle_pxl_cluster = new TH1F("hSingle_pxl_cluster", "Single pxl cluster distr", 100, 0, 3000) );
+    Save( hSingle_pxl_cluster = new TH1F("hSingle_pxl_cluster", "Single pxl cluster distr", 100, 0, 3700) );
     hSingle_pxl_cluster->GetXaxis()->SetTitle("Signal [ADC]");
     Save( CreateCanvas(cSingle_pxl_cluster, hSingle_pxl_cluster) );
 
@@ -36,21 +36,16 @@ void Cluster::Book(){
     hMultiplicity->GetXaxis()->SetTitle("Cluster size [# of pixels]");
     Save( CreateCanvas(cMultiplicity, hMultiplicity) );
 
-    // histogram sum
-    Save( hsum = new TH1F("hsum", "histogram sum", 100, 0, 50) );
-    hsum->GetXaxis()->SetTitle("Signal [ADC]");
-    Save( CreateCanvas(csum, hsum) );
-
   
     // creation of histograms for sectors
     for(unsigned int i=0; i < m_Nsectors; ++i){
 
         Save( hCluster_sector[i] = new TH1F ( ("hCluster_sector_" + std::to_string(i)).c_str(),
-            ("Cluster signal sector # " + std::to_string(i)).c_str(), 100, 0, 50) );   
+            ("Cluster signal sector # " + std::to_string(i)).c_str(), 100, 0, 25000) );   
         hCluster_sector[i]->GetXaxis()->SetTitle("Signal [ADC]");
 
         Save( hMatrix_sector[i] = new TH1F ( ("hMatrix_sector_" + std::to_string(i)).c_str(),
-            ("Matrix sector # " + std::to_string(i)).c_str(), 100, 0, 3500) );
+            ("Matrix sector # " + std::to_string(i)).c_str(), 100, 0, 25000) );
         hMatrix_sector[i]->GetXaxis()->SetTitle("Signal [ADC]");
 
         Save( hMultiplicity_sector[i] = new TH1F ( ("hMultiplicity_sector_" + std::to_string(i)).c_str(),
@@ -85,21 +80,6 @@ void Cluster::Begin(const CommandLine& cl){
 
     Cluster::Book();
 
-    Cluster::calParam param0(0.0135729,-1.32072e-12,0);
-    Cluster::calParam param1(0.0131647,-1.15197e-12   ,1);
-    Cluster::calParam param2(0.0135495,-2.55329e-12,2);
-    Cluster::calParam param3(0.0116646,1.89448e-12,3);
-
-    calParameters.insert( std::make_pair(0, param0) );
-    calParameters.insert( std::make_pair(1, param1) );
-    calParameters.insert( std::make_pair(2, param2) );
-    calParameters.insert( std::make_pair(3, param3) );
-
-    //calParameters[0] = param0;
-    //calParameters[1] = param1;
-    //calParameters[2] = param2;
-    //calParameters[3] = param3;
-
     return;
 }
 
@@ -112,9 +92,9 @@ void Cluster::Analyze(unsigned int iClz, unsigned int iSec){
     // loop over the matrix (sub-matrix 5x5)
     for(unsigned int k=0; k < Clz::MatrixSize; ++k){
         // set threshold on neighbor pixels
-        unsigned int nieghborIndex = Clz::MatrixSize*iClz + k;
-        float pulseHeight = dataFloat->Get("ph_nxn")->at(nieghborIndex);
-        float noise = dataFloat->Get("noise_nxn")->at(nieghborIndex);
+        unsigned int neighbourIndex = Clz::MatrixSize*iClz + k;
+        float pulseHeight = dataFloat->Get("ph_nxn")->at(neighbourIndex);
+        float noise = dataFloat->Get("noise_nxn")->at(neighbourIndex);
         if( pulseHeight/noise > m_Pixel_thr ){
             // update cluster mass
             Clz::Height += pulseHeight;
@@ -128,14 +108,8 @@ void Cluster::Analyze(unsigned int iClz, unsigned int iSec){
     }
 
     // seed height + all overthreshold pixel height
-    //hCluster_sector[iSec]->Fill(Clz::Height); 
+    hCluster_sector[iSec]->Fill(Clz::Height); 
     
-    // fill histogram as sum of histo from sect 0, 1, 2
-    //if (iSec != 3) hsum -> Fill(Clz::Height)
-
-    // Calibrated histo (Clz for each sector + hsum)
-    CalibrateHisto(hCluster_sector[iSec], hsum , Clz::Height, iSec);
-
     // sum of all pixel heights in the sub-matrix
     hMatrix_sector[iSec]->Fill(Clz::MatrixHeight);
 
@@ -155,16 +129,6 @@ void Cluster::End(){
 
     m_Already_analyzed = true;
 
-    for(auto it = calParameters.begin(); it!=calParameters.end(); ++it){
-        std::cout << "Sector = " << it->first << std::endl;
-        std::cout << "a = " << it->second.a << std::endl;
-        std::cout << "b = " << it->second.b << std::endl;
-    }
-
-
-
-
-
     if(m_PlotAll){
         for(auto it = m_PlotPairs.begin(); it != m_PlotPairs.end(); ++it)
             Cluster::Plot(it->first, it->second);
@@ -183,18 +147,5 @@ void Cluster::End(){
     }
 
     return;
-}
-
-void Cluster::CalibrateHisto(TH1F* hist, TH1F* hist2, unsigned int val, unsigned int sec){
-    //hist->SetAxisRange(0, 50);
-    
-    hist->Fill( val * calParameters.at(sec).b + calParameters.at(sec).a );
-    hist->GetXaxis()->SetTitle("Energy [keV]");
-
-    // fill histogram sum of cluster from sector 0, 1, 2 to have more statistic
-    // for now sect 3 not useds
-    if (sec != 3) hist2 -> Fill(val * calParameters.at(sec).b + calParameters.at(sec).a );
-    hist2->GetXaxis()->SetTitle("Energy [keV]");
-
 }
 

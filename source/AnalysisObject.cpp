@@ -13,6 +13,17 @@ AnalysisObject::AnalysisObject(){
     m_vCanvas.reserve(m_Ncan);
     m_vFuncs.reserve(m_Nfunc);
 
+    // calibration parameters for sector, retrieved from Fe-55 peak
+    calParam calSec1(0.0135729, -1.32072e-12, 0);
+    calParam calSec2(0.0131647, -1.15197e-12, 1);
+    calParam calSec3(0.0135495, -2.55329e-12, 2);
+    calParam calSec4(0.0116646,  1.89448e-12, 3);
+
+    m_calParameters.insert( std::make_pair(0, calSec1) );
+    m_calParameters.insert( std::make_pair(1, calSec2) );
+    m_calParameters.insert( std::make_pair(2, calSec3) );
+    m_calParameters.insert( std::make_pair(3, calSec4) );
+
     m_PlotSec = false;
     m_PlotAll = false;
     m_Already_analyzed = false;
@@ -26,6 +37,7 @@ AnalysisObject::~AnalysisObject(){
     m_vFuncs.clear();
     m_PlotPairs.clear();
     m_PlotPairsSectors.clear();
+    m_calParameters.clear();
 }
 
 void AnalysisObject::Plot(TH1* obj, TCanvas* can) {
@@ -155,6 +167,15 @@ void AnalysisObject::SetPlotSettings(const std::string& word){
 
     DBPRINT("Plot setting for sector: ", m_PlotSec);
     DBPRINT("Plot setting for all sectors: ", m_PlotAll);
+
+    return;
+}
+
+void AnalysisObject::SetEnergyScale(TH1* hist, const calParam& param){
+
+    hist->GetXaxis()->SetTitle("Energy [keV]");
+    int nBin = hist->GetNbinsX();
+    hist->GetXaxis()->Set(nBin, hist->GetBinContent(1)*param.b + param.a, hist->GetBinContent(nBin)*param.b + param.a );
 
     return;
 }

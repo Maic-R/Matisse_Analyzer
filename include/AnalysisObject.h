@@ -52,6 +52,21 @@ class AnalysisObject{
     void Save(TCanvas* can);
     void Save(TF1* func);
 
+
+    struct calParam{
+        double a;
+        double b;
+        unsigned int sector;
+
+        calParam(double m, double q, unsigned int sec){
+            a = q;
+            b = m;
+            sector = sec;
+        }
+    };
+
+    void SetEnergyScale(TH1* hist, const calParam& parameters);
+
     inline
     const std::unordered_map<TH1*,TCanvas*>& GetPlotPairs() const { return m_PlotPairs; };
 
@@ -74,8 +89,9 @@ class AnalysisObject{
     std::vector<TCanvas*> m_vCanvas;
     std::vector<TF1*> m_vFuncs;
 
-    std::unordered_map<TH1*,TCanvas*> m_PlotPairs;
+    std::unordered_map<TH1*, TCanvas*> m_PlotPairs;
     std::unordered_map<TH1F**, TCanvas*> m_PlotPairsSectors;
+    std::unordered_map<unsigned int, calParam> m_calParameters;
 
     // plot for sector and plot all sectors: plot settings
     bool m_PlotAll;

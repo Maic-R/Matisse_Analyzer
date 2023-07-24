@@ -9,13 +9,14 @@ Seed::Seed():
     cSeed_row(nullptr), cSeed_col(nullptr), cSeed_map(nullptr),
     cSeed_all(nullptr),
     hSeed_sector{nullptr}, hRow_sector{nullptr}, hCol_sector{nullptr},
-    cSeed_sector(nullptr)
-    , fNoisyPixels(), fNoiseThreshold(1000) //FIXME
+    cSeed_sector(nullptr), 
+    m_NoiseThreshold(1000) //FIXME: initialized this variable taking the input from command line
 {
     DBPRINT("Seed object created: ", this);
 }
 
 Seed::~Seed(){
+    m_NoisyPixels.clear();
 }
 
 void Seed::Book() {
@@ -41,7 +42,7 @@ void Seed::Book() {
     for(unsigned int i=0; i < m_Nsectors; ++i){
 
         Save( hSeed_sector[i] = new TH1F ( ("hSeed_sct_" + std::to_string(i)).c_str(), 
-            ("Seed sector # " + std::to_string(i)).c_str(), 100, 0, 3000) );
+            ("Seed sector # " + std::to_string(i)).c_str(), 100, 0, 9000) );
         hSeed_sector[i]->GetXaxis()->SetTitle("Signal [ADC]");
 
         Save( hRow_sector[i] = new TH1F ( ("hRow_sct_" + std::to_string(i)).c_str(),
@@ -56,7 +57,7 @@ void Seed::Book() {
     // creation of canvas for sectors
     Save( CreateCanvasForSector(cSeed_sector, hSeed_sector) ); 
 
-    Save( hSeed_all = new TH1F("hSeed_all", "Seed distribution", 100, 0, 3500) );
+    Save( hSeed_all = new TH1F("hSeed_all", "Seed distribution", 100, 0, 9000) );
     hSeed_all->GetXaxis()->SetTitle("Signal [ADC]");
     Save( CreateCanvas(cSeed_all, hSeed_all) );
     
@@ -111,22 +112,24 @@ void Seed::CalculateNoisyPixels(){
     for(int x = 0; x < m_Nrows; ++x)
         for(int y = 0; y < m_Ncols; ++y)
             if(hSeed_map->GetBinContent(hSeed_map -> FindFixBin(x,y)) >
-               fNoiseThreshold)
+               m_NoiseThreshold)
             {
 
-                if(std::find(fNoisyPixels.begin(), fNoisyPixels.end(),
-                 std::make_pair(x, y)) != fNoisyPixels.end())
+                if(std::find(m_NoisyPixels.begin(), m_NoisyPixels.end(),
+                 std::make_pair(x, y)) != m_NoisyPixels.end())
                      continue;
                 
-                fNoisyPixels.push_back(std::make_pair(x, y ));
+                m_NoisyPixels.push_back(std::make_pair(x, y ));
                 hSeed_map->SetBinContent(hSeed_map -> FindFixBin(x,y), 0);
             }
 
-
+    return;
 }
 void Seed::End(){
 
     std::cout << "Seed analysis completed. Plotting the results ... \n";
+
+    
 
     m_Already_analyzed = true;
 

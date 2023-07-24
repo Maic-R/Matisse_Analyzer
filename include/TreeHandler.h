@@ -29,7 +29,12 @@ class TreeHandler{
     std::string UpdateClusterFileName(unsigned int iFile);
     void ReadTree(TTreeReader* reader);
 
+    void GetTriggerFrames(std::string clzFile);
+    int PreAnalyzeClzFiles(std::string path, std::string fileNameRAW);
+
+    std::string m_FileName_RAW;
     std::string m_FileName_CLZ;
+    std::string m_preAnalysisDir;
 
     // A TChain is a collection of TFile objects. The first parameter "name" is the name of the 
     // TTree object in the files added with Add method
@@ -37,6 +42,17 @@ class TreeHandler{
     TChain m_Header;
 
     TTreeReader* m_Reader;
+
+    // vectors used to select trigger frames from each CLZ file
+    std::vector<int> m_rowseed;
+    std::vector<int> m_colseed;
+    std::vector<unsigned int> m_fidval;
+    std::vector<float> m_xval;
+    std::vector<float> m_yval;
+    std::vector<float> m_maxval;
+    std::vector<float> m_ph;
+    std::vector<float> m_noise;
+
 
 };
 
