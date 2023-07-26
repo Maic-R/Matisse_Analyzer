@@ -11,7 +11,7 @@
 
 // The name passed to instatiate the TChain must be the same of the TTrees 
 // in the TFile
-TreeHandler::TreeHandler(std::string fileName_RAW):
+TreeHandler::TreeHandler(std::string fileName_RAW, bool doPreAnalysis):
     m_Data("hitstree", "Data chain"),
     m_Header("headertree", "Header chain")
 {
@@ -19,17 +19,24 @@ TreeHandler::TreeHandler(std::string fileName_RAW):
     size_t last_slash = fileName_RAW.find_last_of('/');
     std::string rawFilePath = fileName_RAW.substr(0, last_slash);
     m_FileName_RAW = fileName_RAW.substr(last_slash+1);
-    m_preAnalysisDir = rawFilePath + "/preAnalysis";
+
+    // set preAnalysis path
+    if(doPreAnalysis)
+        m_preAnalysisDir = rawFilePath + "/preAnalysis";
+    else
+        m_preAnalysisDir = rawFilePath;
+    
     std::filesystem::path preAnalysisPath = std::string(m_preAnalysisDir);
     std::cout << "pre Analysis path = " << preAnalysisPath << std::endl;
     std::cout << "pre Analysis dir = " << m_preAnalysisDir << std::endl;
-    //bool preAnalysisExists = std::filesystem::is_directory(preAnalysisPath.parent_path());
-    bool preAnalysisExists = std::filesystem::exists(preAnalysisPath);
+    bool preAnalysisExists = true;
+    if(doPreAnalysis)
+        preAnalysisExists = std::filesystem::exists(preAnalysisPath);  
     std::cout << "pre Analysis exists = " << preAnalysisExists << std::endl;
 
     // if pre analysis has already been done do not create the directory and the 
     // skip the selection of trigger frames for each clz file
-    if(!preAnalysisExists){
+    if(!preAnalysisExists && doPreAnalysis){
         std::string makeDirCommand( "mkdir -p " + rawFilePath + "/preAnalysis" );
         // create a sub directory for new CLZ files
         system( makeDirCommand.c_str() );
@@ -54,7 +61,6 @@ TreeHandler::TreeHandler(std::string fileName_RAW):
     // the file is found we have to negate the expression
     unsigned int iFile=0;
     while( !gSystem->AccessPathName( UpdateClusterFileName(iFile).c_str() ) ){
-        std::cout << UpdateClusterFileName(iFile) << std::endl;
         m_Data.Add( UpdateClusterFileName(iFile).c_str() );
         ++iFile;
     }
@@ -90,6 +96,7 @@ std::string TreeHandler::UpdateClusterFileName(unsigned int iFile){
     
     std::string fileName_CLZ;
     fileName_CLZ = m_preAnalysisDir + m_FileName_CLZ + "_" + std::to_string(iFile) + "_CLZ.root";
+    std::cout << fileName_CLZ << std::endl; 
 
     return fileName_CLZ;
 }

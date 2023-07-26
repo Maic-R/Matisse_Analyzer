@@ -60,8 +60,10 @@ m_RootFile(nullptr)
     std::cout << "Run parameters:\n";
     m_Parameters.Print();
 
+    // set preAnalysis status from command line info: by default do pre analysis
+    bool doPreAnalysis = (bool) m_CommandLine.contains("preAnalysis") ? m_CommandLine.getValue("preAnalysis") : true ;
     // set the chains and read the trees to get data
-    m_TreeHandler = new TreeHandler( m_CommandLine.getFileNameRAW() );
+    m_TreeHandler = new TreeHandler( m_CommandLine.getFileNameRAW(), doPreAnalysis );
 
 }
 

@@ -13,7 +13,7 @@ class TreeHandler{
 
     TreeHandler() = delete;
     TreeHandler(const TreeHandler&) = delete;
-    TreeHandler(std::string fileName_RAW);
+    TreeHandler(std::string fileName_RAW, bool doPreAnalysis);
     ~TreeHandler();
 
     inline
